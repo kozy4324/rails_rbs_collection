@@ -27,6 +27,329 @@ module ActiveRecord
   end
 end
 module ActiveRecord
+  module AttributeMethods
+    # = Active Record Attribute Methods \Write
+    module Write
+      extend ActiveSupport::Concern
+
+      module ClassMethods
+        private
+
+        def define_method_attribute=: (untyped canonical_name, owner: untyped, ?as: untyped) -> untyped
+      end
+
+      # Updates the attribute identified by +attr_name+ using the specified
+      # +value+. The attribute value will be type cast upon being read.
+      def write_attribute: (untyped attr_name, untyped value) -> untyped
+
+      # This method exists to avoid the expensive primary_key check internally, without
+      # breaking compatibility with the write_attribute API
+      def _write_attribute: (untyped attr_name, untyped value) -> untyped
+
+      alias attribute= _write_attribute
+    end
+  end
+end
+module ActiveRecord
+  module AttributeMethods
+    # = Active Record Attribute Methods Before Type Cast
+    #
+    # ActiveRecord::AttributeMethods::BeforeTypeCast provides a way to
+    # read the value of the attributes before typecasting and deserialization.
+    #
+    #   class Task < ActiveRecord::Base
+    #   end
+    #
+    #   task = Task.new(id: '1', completed_on: '2012-10-21')
+    #   task.id           # => 1
+    #   task.completed_on # => Sun, 21 Oct 2012
+    #
+    #   task.attributes_before_type_cast
+    #   # => {"id"=>"1", "completed_on"=>"2012-10-21", ... }
+    #   task.read_attribute_before_type_cast('id')           # => "1"
+    #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
+    #
+    # In addition to #read_attribute_before_type_cast and #attributes_before_type_cast,
+    # it declares a method for all attributes with the <tt>*_before_type_cast</tt>
+    # suffix.
+    #
+    #   task.id_before_type_cast           # => "1"
+    #   task.completed_on_before_type_cast # => "2012-10-21"
+    module BeforeTypeCast
+      extend ActiveSupport::Concern
+
+      # Returns the value of the attribute identified by +attr_name+ before
+      # typecasting and deserialization.
+      #
+      #   class Task < ActiveRecord::Base
+      #   end
+      #
+      #   task = Task.new(id: '1', completed_on: '2012-10-21')
+      #   task.read_attribute('id')                            # => 1
+      #   task.read_attribute_before_type_cast('id')           # => '1'
+      #   task.read_attribute('completed_on')                  # => Sun, 21 Oct 2012
+      #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
+      #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
+      def read_attribute_before_type_cast: (untyped attr_name) -> untyped
+
+      # Returns the value of the attribute identified by +attr_name+ after
+      # serialization.
+      #
+      #   class Book < ActiveRecord::Base
+      #     enum :status, { draft: 1, published: 2 }
+      #   end
+      #
+      #   book = Book.new(status: "published")
+      #   book.read_attribute(:status)              # => "published"
+      #   book.read_attribute_for_database(:status) # => 2
+      def read_attribute_for_database: (untyped attr_name) -> untyped
+
+      # Returns a hash of attributes before typecasting and deserialization.
+      #
+      #   class Task < ActiveRecord::Base
+      #   end
+      #
+      #   task = Task.new(title: nil, is_done: true, completed_on: '2012-10-21')
+      #   task.attributes
+      #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>Sun, 21 Oct 2012, "created_at"=>nil, "updated_at"=>nil}
+      #   task.attributes_before_type_cast
+      #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
+      def attributes_before_type_cast: () -> untyped
+
+      # Returns a hash of attributes for assignment to the database.
+      def attributes_for_database: () -> untyped
+
+      private
+
+      # Dispatch target for <tt>*_before_type_cast</tt> attribute methods.
+      def attribute_before_type_cast: (untyped attr_name) -> untyped
+
+      def attribute_for_database: (untyped attr_name) -> untyped
+
+      def attribute_came_from_user?: (untyped attr_name) -> untyped
+    end
+  end
+end
+module ActiveRecord
+  module AttributeMethods
+    # = Active Record Attribute Methods \Query
+    #
+    # Adds query methods for attributes that return either +true+ or +false+
+    # depending on the attribute type and value.
+    #
+    # For Boolean attributes this will return +true+ if the value is present
+    # and return +false+ otherwise:
+    #
+    #   class Product < ActiveRecord::Base
+    #   end
+    #
+    #   product = Product.new(archived: false)
+    #   product.archived? # => false
+    #   product.archived = true
+    #   product.archived? # => true
+    #
+    # For Numeric attributes this will return +true+ if the value is a non-zero
+    # number and return +false+ otherwise:
+    #
+    #   product.inventory_count = 0
+    #   product.inventory_count? # => false
+    #   product.inventory_count = 1
+    #   product.inventory_count? # => true
+    #
+    # For other attributes it will return +true+ if the value is present
+    # and return +false+ otherwise:
+    #
+    #   product.name = nil
+    #   product.name? # => false
+    #   product.name = " "
+    #   product.name? # => false
+    #   product.name = "Orange"
+    #   product.name? # => true
+    module Query
+      extend ActiveSupport::Concern
+
+      # Returns +true+ or +false+ for the attribute identified by +attr_name+,
+      # depending on the attribute type and value.
+      def query_attribute: (untyped attr_name) -> untyped
+
+      def _query_attribute: (untyped attr_name) -> untyped
+
+      alias attribute? query_attribute
+
+      private
+
+      def query_cast_attribute: (untyped attr_name, untyped value) -> untyped
+    end
+  end
+end
+module ActiveRecord
+  module AttributeMethods
+    # = Active Record Attribute Methods \Dirty
+    #
+    # Provides a way to track changes in your Active Record models. It adds all
+    # methods from ActiveModel::Dirty and adds database-specific methods.
+    #
+    # A newly created +Person+ object is unchanged:
+    #
+    #   class Person < ActiveRecord::Base
+    #   end
+    #
+    #   person = Person.create(name: "Allison")
+    #   person.changed? # => false
+    #
+    # Change the name:
+    #
+    #   person.name = 'Alice'
+    #   person.name_in_database          # => "Allison"
+    #   person.will_save_change_to_name? # => true
+    #   person.name_change_to_be_saved   # => ["Allison", "Alice"]
+    #   person.changes_to_save           # => {"name"=>["Allison", "Alice"]}
+    #
+    # Save the changes:
+    #
+    #   person.save
+    #   person.name_in_database        # => "Alice"
+    #   person.saved_change_to_name?   # => true
+    #   person.saved_change_to_name    # => ["Allison", "Alice"]
+    #   person.name_before_last_save   # => "Allison"
+    #
+    # Similar to ActiveModel::Dirty, methods can be invoked as
+    # +saved_change_to_name?+ or by passing an argument to the generic method
+    # <tt>saved_change_to_attribute?("name")</tt>.
+    module Dirty
+      @mutations_before_last_save: untyped
+
+      @mutations_from_database: untyped
+
+      @_touch_attr_names: untyped
+
+      @_skip_dirty_tracking: untyped
+
+      extend ActiveSupport::Concern
+
+      include ActiveModel::Dirty
+
+      # <tt>reload</tt> the record and clears changed attributes.
+      def reload: (*untyped) -> untyped
+
+      # Did this attribute change when we last saved?
+      #
+      # This method is useful in after callbacks to determine if an attribute
+      # was changed during the save that triggered the callbacks to run. It can
+      # be invoked as +saved_change_to_name?+ instead of
+      # <tt>saved_change_to_attribute?("name")</tt>.
+      #
+      # ==== Options
+      #
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value is equal to the given value.
+      #
+      # [+to+]
+      #   When specified, this method will return false unless the value will be
+      #   changed to the given value.
+      def saved_change_to_attribute?: (untyped attr_name, **untyped options) -> untyped
+
+      # Returns the change to an attribute during the last save. If the
+      # attribute was changed, the result will be an array containing the
+      # original value and the saved value.
+      #
+      # This method is useful in after callbacks, to see the change in an
+      # attribute during the save that triggered the callbacks to run. It can be
+      # invoked as +saved_change_to_name+ instead of
+      # <tt>saved_change_to_attribute("name")</tt>.
+      def saved_change_to_attribute: (untyped attr_name) -> untyped
+
+      # Returns the original value of an attribute before the last save.
+      #
+      # This method is useful in after callbacks to get the original value of an
+      # attribute before the save that triggered the callbacks to run. It can be
+      # invoked as +name_before_last_save+ instead of
+      # <tt>attribute_before_last_save("name")</tt>.
+      def attribute_before_last_save: (untyped attr_name) -> untyped
+
+      # Did the last call to +save+ have any changes to change?
+      def saved_changes?: () -> untyped
+
+      # Returns a hash containing all the changes that were just saved.
+      def saved_changes: () -> untyped
+
+      # Will this attribute change the next time we save?
+      #
+      # This method is useful in validations and before callbacks to determine
+      # if the next call to +save+ will change a particular attribute. It can be
+      # invoked as +will_save_change_to_name?+ instead of
+      # <tt>will_save_change_to_attribute?("name")</tt>.
+      #
+      # ==== Options
+      #
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value is equal to the given value.
+      #
+      # [+to+]
+      #   When specified, this method will return false unless the value will be
+      #   changed to the given value.
+      def will_save_change_to_attribute?: (untyped attr_name, **untyped options) -> untyped
+
+      # Returns the change to an attribute that will be persisted during the
+      # next save.
+      #
+      # This method is useful in validations and before callbacks, to see the
+      # change to an attribute that will occur when the record is saved. It can
+      # be invoked as +name_change_to_be_saved+ instead of
+      # <tt>attribute_change_to_be_saved("name")</tt>.
+      #
+      # If the attribute will change, the result will be an array containing the
+      # original value and the new value about to be saved.
+      def attribute_change_to_be_saved: (untyped attr_name) -> untyped
+
+      # Returns the value of an attribute in the database, as opposed to the
+      # in-memory value that will be persisted the next time the record is
+      # saved.
+      #
+      # This method is useful in validations and before callbacks, to see the
+      # original value of an attribute prior to any changes about to be
+      # saved. It can be invoked as +name_in_database+ instead of
+      # <tt>attribute_in_database("name")</tt>.
+      def attribute_in_database: (untyped attr_name) -> untyped
+
+      # Will the next call to +save+ have any changes to persist?
+      def has_changes_to_save?: () -> untyped
+
+      # Returns a hash containing all the changes that will be persisted during
+      # the next save.
+      def changes_to_save: () -> untyped
+
+      # Returns an array of the names of any attributes that will change when
+      # the record is next saved.
+      def changed_attribute_names_to_save: () -> untyped
+
+      # Returns a hash of the attributes that will change when the record is
+      # next saved.
+      #
+      # The hash keys are the attribute names, and the hash values are the
+      # original attribute values in the database (as opposed to the in-memory
+      # values about to be saved).
+      def attributes_in_database: () -> untyped
+
+      private
+
+      def init_internals: () -> untyped
+
+      def _touch_row: (untyped attribute_names, untyped time) -> untyped
+
+      def _update_record: (?untyped attribute_names) -> untyped
+
+      def _create_record: (?untyped attribute_names) -> untyped
+
+      def attribute_names_for_partial_updates: () -> untyped
+
+      def attribute_names_for_partial_inserts: () -> untyped
+    end
+  end
+end
+module ActiveRecord
   # = Active Record \Named \Scopes
   module Scoping
     module Named
