@@ -10,7 +10,9 @@ task :activerecord do
   sh %|rbs prototype rb #{base}/attribute_methods/before_type_cast.rb >> gems/activerecord/8.1/generated.rbs|
   sh %|rbs prototype rb #{base}/attribute_methods/query.rb            >> gems/activerecord/8.1/generated.rbs|
   sh %|rbs prototype rb #{base}/attribute_methods/dirty.rb            >> gems/activerecord/8.1/generated.rbs|
-  sh %|rbs prototype rb #{base}/scoping/named.rb >> gems/activerecord/8.1/generated.rbs|
+  sh %|rbs prototype rb #{base}/scoping/named.rb                      >> gems/activerecord/8.1/generated.rbs|
+  sh %|rbs prototype rb #{base}/persistence.rb                        >> gems/activerecord/8.1/generated.rbs|
 end
 
 task generate: [:activerecord]
+task default: [:generate]
