@@ -22,7 +22,10 @@ module ActiveRecord
 
       alias attribute _read_attribute
     end
-
+  end
+end
+module ActiveRecord
+  module AttributeMethods
     # = Active Record Attribute Methods \Write
     module Write
       extend ActiveSupport::Concern
@@ -43,7 +46,10 @@ module ActiveRecord
 
       alias attribute= _write_attribute
     end
-
+  end
+end
+module ActiveRecord
+  module AttributeMethods
     # = Active Record Attribute Methods Before Type Cast
     #
     # ActiveRecord::AttributeMethods::BeforeTypeCast provides a way to
@@ -120,7 +126,10 @@ module ActiveRecord
 
       def attribute_came_from_user?: (untyped attr_name) -> untyped
     end
-
+  end
+end
+module ActiveRecord
+  module AttributeMethods
     # = Active Record Attribute Methods \Query
     #
     # Adds query methods for attributes that return either +true+ or +false+
@@ -169,7 +178,10 @@ module ActiveRecord
 
       def query_cast_attribute: (untyped attr_name, untyped value) -> untyped
     end
-
+  end
+end
+module ActiveRecord
+  module AttributeMethods
     # = Active Record Attribute Methods \Dirty
     #
     # Provides a way to track changes in your Active Record models. It adds all
@@ -334,7 +346,8 @@ module ActiveRecord
       def attribute_names_for_partial_inserts: () -> untyped
     end
   end
-
+end
+module ActiveRecord
   # = Active Record \Named \Scopes
   module Scoping
     module Named
@@ -467,7 +480,8 @@ module ActiveRecord
       end
     end
   end
-
+end
+module ActiveRecord
   # = Active Record \Persistence
   module Persistence
     @destroyed: untyped

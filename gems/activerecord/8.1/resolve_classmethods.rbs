@@ -1,0 +1,5 @@
+module ActiveRecord
+  class Base
+    extend ActiveRecord::Scoping::Named::ClassMethods
+  end
+end

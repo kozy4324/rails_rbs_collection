@@ -1,0 +1,10 @@
+module ActiveRecord
+  module Scoping
+    module Named
+      module ClassMethods
+        # %a{patch:override}
+        # def all: (?all_queries: untyped?) -> untyped
+      end
+    end
+  end
+end
